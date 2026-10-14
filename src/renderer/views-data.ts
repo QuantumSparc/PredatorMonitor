@@ -336,6 +336,7 @@ export function settingsView(apply: (s: Settings) => void): View {
           card({ title: 'About', icon: 'info', span: 12 },
             h('div', { class: 'about' },
               h('div', { class: 'about-logo' }),
+              h('a', { class: 'about-company', href: '#', title: DEVELOPER.url, onclick: (e: Event) => { e.preventDefault(); api.openUrl(DEVELOPER.url); } }, h('img', { src: '../../assets/quantumsparc-logo.png', alt: DEVELOPER.name })),
               h('div', null,
                 h('h4', null, 'Predator Monitor ', h('span', { class: 'muted' }, `v${state.version}`)),
                 h('p', { class: 'about-dev' }, 'Developed by ', h('a', { href: '#', onclick: (e: Event) => { e.preventDefault(); api.openUrl(DEVELOPER.url); } }, DEVELOPER.name), ' · ', h('a', { href: '#', onclick: (e: Event) => { e.preventDefault(); api.openUrl(DEVELOPER.url); } }, DEVELOPER.url.replace(/^https:\/\/|\/$/g, ''))),

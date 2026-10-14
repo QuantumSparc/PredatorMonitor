@@ -6,3 +6,4 @@ agent/lhm/
 *.png
 !assets/*.png
 release/
+!docs/screenshots/*.png

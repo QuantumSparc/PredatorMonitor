@@ -1,38 +1,166 @@
+<div align="center">
+
+<img src="assets/icon.png" width="96" alt="Predator Monitor" />
+
 # Predator Monitor
 
-A machine-aware hardware monitor for the **Acer Predator Helios 300 (PH315-53)** with an **Alienware AW3425DWM** ultrawide.
-Instead of just showing numbers, it compares every live reading with this exact machine's limits — PL1/PL2/Tau, the 92 °C
-PROCHOT point, PredatorSense TGP tiers, the 230 W adapter budget, the DisplayPort HBR3 link — and tells you what it means.
+**A hardware monitor that knows your laptop.**
+Built for the Acer Predator Helios 300 (PH315-53) and an Alienware AW3425DWM ultrawide, it judges every live reading
+against this exact machine's limits — and tells you what it means.
 
-Electron + TypeScript desktop app · PowerShell 7 sensor agent · Catppuccin-themed glass UI.
+![Windows 10/11](https://img.shields.io/badge/Windows-10%20%7C%2011-0078D6?logo=windows&logoColor=white)
+![Electron](https://img.shields.io/badge/Electron-44-47848F?logo=electron&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-7-3178C6?logo=typescript&logoColor=white)
+![PowerShell 7](https://img.shields.io/badge/PowerShell-7-5391FE?logo=powershell&logoColor=white)
+![Version](https://img.shields.io/badge/version-0.1.0-cba6f7)
 
-**Developed by [QuantumSparc Technologies](https://quantumsparc.com/).**
+<a href="https://quantumsparc.com/"><img src="assets/quantumsparc-mark.png" width="22" align="center" alt="" /></a>
+Developed by **[QuantumSparc Technologies](https://quantumsparc.com/)**
+
+</div>
+
+![Overview](docs/screenshots/overview.png)
 
 ---
 
-## What makes it different
+## Contents
 
-| Feature | How |
+- [Why another monitor?](#why-another-monitor)
+- [Screenshots](#screenshots)
+- [Features](#features)
+- [Install](#install)
+- [Full sensors (admin)](#full-sensors-admin)
+- [Customisation](#customisation)
+- [Build from source](#build-from-source)
+- [How it works](#how-it-works)
+- [Privacy & safety](#privacy--safety)
+- [Troubleshooting](#troubleshooting)
+- [Credits & licences](#credits--licences)
+
+---
+
+## Why another monitor?
+
+Most monitors show numbers. Predator Monitor knows what the numbers *mean on this laptop*:
+
+| Insight | How it works |
 |---|---|
 | **PL1 / PL2 / Tau power-limit model** | Live CPU package power from Intel RAPL (no admin), an EWMA with Intel's Tau to estimate how much PL2 boost is left, and detection of the EC lowering PL1 to 45–56 W when the GPU draws > 40 W |
-| **PredatorSense mode detection** | Normal / Fast / Turbo inferred from the GPU power limit the VBIOS enforces; with admin also the Acer thermal profile, fan modes, overclock tier and Turbo LED (read-only Acer WMI) |
-| **PROCHOT & TVB meter** | Headroom to 92 °C and whether 5.0 GHz Thermal Velocity Boost (≤ 65 °C) is currently possible |
-| **Optimus-bypass check** | Warns when the laptop panel is on next to the ultrawide (costs 8–15 % 1 % lows) |
-| **DisplayPort link budget** | % of HBR3 your current mode uses and whether 10-bit needs DSC |
-| **Adapter budget & NOS detection** | Estimated system draw vs the 230 W Delta brick; flags when the battery is assisting on AC |
+| **PredatorSense mode detection** | Normal / Fast / Turbo inferred from the GPU power limit the VBIOS enforces; with admin also fan modes, overclock tier and the Turbo LED (read-only Acer WMI) |
+| **PROCHOT & TVB headroom** | Distance to the 92 °C throttle point and whether 5.0 GHz Thermal Velocity Boost (≤ 65 °C) is possible right now |
+| **Spike-proof thermal judgement** | 5-second median, hysteresis and debounced events — a CPU hovering at a threshold produces one event, not a toast every few seconds |
+| **Where the power goes** | System draw split into CPU cores, uncore, iGPU, DRAM, RTX 2060, rest of system and charging. On battery the total is *measured* from the discharge rate, and the "rest of system" figure is learned from it |
+| **Adapter budget & NOS detection** | System draw against the 230 W Delta adapter; flags when the battery has to help on AC |
+| **Optimus-bypass check** | Warns when the laptop panel is on next to the ultrawide (costs 8–15 % in 1 % lows) |
+| **DisplayPort link budget** | How much of HBR3 the current mode uses and whether 10-bit needs DSC |
 | **Battery wear trend** | Full-charge capacity logged daily, with a projected date for 50 % |
-| **Per-app GPU** | GPU % (and engine) and GPU memory per process, from Windows GPU-engine counters |
-| **Gaming sessions** | Auto-detected from sustained GPU load; avg/max power, temps, clocks and seconds throttled per session, tagged with the game |
-| **PredatorSense fan view** | Animated CPU/GPU fans that spin with the real RPM from Acer's EC (same readings PredatorSense shows), fan-mode chips (Auto / Max / Custom), % of max |
-| **Spike-proof thermal judgement** | Levels use a 5-second median plus 3 °C hysteresis; PROCHOT is only claimed from a real CPU sensor or actual firmware throttling |
-| **Per-component power** | Live split of system draw into CPU cores, uncore, iGPU, DRAM, RTX 2060, rest (estimate) and charging — each with share, limit, 60 s min/avg/max, session peak and energy used; plus every LHM voltage, current and power sensor |
-| **Health score** | One number summarising all checks |
-| **Min / avg / max / peak** | Overview CPU, GPU and power tiles show the last 60 s range plus the session peak for load, clock, temperature and power |
+| **Health score** | One number summarising every check |
 
-Plus everything a monitor should have: per-thread load and clocks, RAPL rails (package, cores, iGPU, DRAM), full nvidia-smi
-telemetry, memory breakdown, per-disk throughput / IOPS / latency / active time, per-adapter network throughput, Wi-Fi link,
-battery rate/voltage/time-left, every LibreHardwareMonitor sensor, displays with EDID, firmware & security state, processes,
-history (1 h – 30 d), events timeline, Windows notifications and a tray icon.
+Values that come from the machine's technical dossier (limits, specs) are labelled as such in the app — they are never
+presented as measurements.
+
+---
+
+## Screenshots
+
+| | |
+|:---:|:---:|
+| ![Overview tiles](docs/screenshots/overview-tiles.png) **Overview** — live tiles with 60 s min / avg / max and session peak | ![Insights](docs/screenshots/insights.png) **Insights** — every check, judged against this machine |
+| ![Thermals & fans](docs/screenshots/thermals-fans.png) **Thermals & Fans** — PredatorSense-style fans spinning at the real EC RPM | ![Power](docs/screenshots/power.png) **Power & Battery** — where every watt goes |
+| ![Power components](docs/screenshots/power-components.png) **Components** — watts, share, limit, range, peak and energy per part | ![Processor](docs/screenshots/processor.png) **Processor** — per-thread load and clocks, PL1/PL2 model |
+| ![Graphics](docs/screenshots/graphics.png) **Graphics** — full nvidia-smi telemetry and VBIOS tiers | ![Sensors](docs/screenshots/sensors.png) **All hardware sensors** — 144 LibreHardwareMonitor sensors, searchable |
+| ![Displays](docs/screenshots/displays.png) **Displays** — DP link budget, Optimus path, EDID | ![History](docs/screenshots/history.png) **History** — per-minute rollups, 1 h to 30 days |
+| ![Events](docs/screenshots/events.png) **Events** — grouped timeline with filters | ![Settings](docs/screenshots/settings.png) **Settings** — themes, accents, layout, alerts |
+
+<details>
+<summary><b>Themes and the command palette</b></summary>
+
+| | |
+|:---:|:---:|
+| ![Latte](docs/screenshots/theme-latte.png) Catppuccin Latte | ![Predator](docs/screenshots/theme-predator.png) Predator |
+| ![Midnight](docs/screenshots/theme-midnight.png) Midnight | ![Command palette](docs/screenshots/palette.png) Command palette (Ctrl + K) |
+
+</details>
+
+---
+
+## Features
+
+**Monitor**
+- **Overview** — machine health, CPU / GPU / system power tiles with 60 s min · avg · max and session peak (load, clock,
+  temperature, power), animated fans, memory, temperatures, battery, storage, network and displays. Every tile opens its
+  detail page.
+- **Insights** — every live check with severity filters (critical, warnings, info, good).
+- **Processes** — top processes by CPU, GPU and memory, with per-app GPU % / engine / GPU memory from Windows GPU-engine
+  counters. Sortable and filterable.
+
+**Hardware**
+- **Processor** — per-thread load and effective clock, package power against PL1/PL2, power-limit model, TVB state.
+- **Graphics** — load, power vs enforced limit, clocks, temperature, P-state, throttle reasons, PCIe link, encoder.
+- **Memory** — usage breakdown (committed, cache, pools, page file), history, paging, module details.
+- **Storage** — per-drive active time, throughput, IOPS, latency and queue, volumes, slot topology.
+- **Network** — per-adapter throughput, IP / gateway / DNS, Wi-Fi link details.
+
+**Machine**
+- **Power & Battery** — live gauges, *where the power goes* bar, a tile per component (live W, share of system, limit,
+  60 s range, session peak, energy used), RAPL rails, system draw vs adapter, GPU power limits, session energy, battery
+  state and wear, every voltage / current / power sensor.
+- **Thermals & Fans** — fan view with Auto / Max / Custom state, temperature and fan-speed history, PredatorSense data,
+  thermal zone, and a searchable browser for all LibreHardwareMonitor sensors.
+- **Displays** — DisplayPort 1.4 link maths, outputs, Optimus path, monitor and panel details.
+- **System** — machine, firmware, Windows, processor, graphics and app status.
+
+**Analyse**
+- **Gaming sessions** — detected automatically from sustained GPU load; average / max power, temperatures, clocks and
+  seconds spent throttling, tagged with the game.
+- **History** — per-minute rollups (average or peak) for 1 h, 6 h, 24 h, 7 d or 30 d; drag to zoom.
+- **Events** — day-grouped timeline of mode changes, throttling, power source changes and sessions, with filters and
+  grouping of repeats.
+
+**Everywhere** — Windows notifications for critical insights, tray icon with live tooltip, export to JSON or CSV,
+command palette, keyboard shortcuts, °C / °F.
+
+---
+
+## Install
+
+Download from the [Releases](../../releases) page, or build it yourself with `npm run dist` (see below).
+
+| File | Use it when |
+|---|---|
+| `Predator-Monitor-Setup-<version>.exe` | You want a normal install. Per-user (no admin needed to install), lets you choose the folder, adds Start Menu and desktop shortcuts and an uninstaller. Your data is kept on uninstall. |
+| `Predator-Monitor-<version>-portable.exe` | You want a single file and no install. It unpacks to a temp folder on each start, so it opens a little slower. |
+
+**Requirements:** Windows 10 or 11 (x64), [PowerShell 7](https://aka.ms/powershell) (`pwsh`), and the NVIDIA driver
+(provides `nvidia-smi`).
+
+> **"Windows protected your PC"** — the builds are not code-signed yet, so SmartScreen warns on first run.
+> Click **More info → Run anyway**.
+
+---
+
+## Full sensors (admin)
+
+Without admin the app already shows CPU load, clocks and RAPL power, the board thermal zone, the GPU, memory, disks,
+network, battery and per-app GPU. Running as administrator adds:
+
+- **Acer gaming WMI** — CPU and GPU fan RPM, fan modes, EC temperatures, GPU overclock tier and Turbo LED. Read-only:
+  the app only calls `Get*` methods and never changes a setting.
+- **LibreHardwareMonitor** — per-core temperatures and voltages, GPU hot spot, DRAM SPD timings, battery details and more
+  (144 sensors on the PH315-53). CPU sensors need the signed **PawnIO** driver, installed once:
+
+  ```powershell
+  winget install namazso.PawnIO
+  ```
+
+Turn it on from **Settings → Sensors → Restart with full sensors** (one UAC prompt). The installer already contains
+LibreHardwareMonitor; a source checkout downloads it with `npm run setup-sensors`.
+
+To see what any machine exposes, run the read-only diagnostic as admin — it writes `%TEMP%\predator-monitor-diag.txt`:
+
+```powershell
+Start-Process pwsh -Verb RunAs -ArgumentList '-NoProfile','-File','agent\diagnose.ps1'
+```
 
 ---
 
@@ -40,97 +168,110 @@ history (1 h – 30 d), events timeline, Windows notifications and a tray icon.
 
 Everything in **Settings** applies instantly:
 
-- 6 themes (Catppuccin Mocha / Macchiato / Frappé / Latte, Midnight, Predator) × 14 accent colours
-- Window material (acrylic / mica / solid), panel translucency, density, text size, collapsible sidebar
-- Animations (full / reduced / off) and animation speed, live-chart span, sensor sample rate
-- °C / °F, history retention, gaming-session threshold, dashboard tiles
-- Start with Windows, start minimised, close to tray, always on top, tray tooltip content
-- Notifications, sound, and every alert threshold (CPU, GPU, board zone, RAM, VRAM, disk space, battery wear)
-- Export history / events / sessions to JSON or CSV
+- **Look** — 6 themes (Catppuccin Mocha / Macchiato / Frappé / Latte, Midnight, Predator) × 14 accent colours, window
+  material (acrylic / mica / solid), panel translucency, density, text size, collapsible sidebar
+- **Motion** — animations full / reduced / off, animation speed, live-chart span, sensor sample rate (0.5–5 s)
+- **Dashboard** — show, hide and reorder the Overview tiles
+- **Units & data** — °C / °F, history retention, gaming-session threshold, export
+- **Window** — start with Windows, start minimised, close to tray, always on top, tray tooltip content
+- **Alerts** — Windows notifications, sound, and every threshold (CPU, GPU, board zone, RAM, VRAM, disk space, battery wear)
 
-**Ctrl + K** opens a command palette for every view, theme and action. **Ctrl + 1–9** jumps to views, **Ctrl + B** collapses the sidebar.
+| Shortcut | Action |
+|---|---|
+| `Ctrl` + `K` | Command palette — every page, theme and action |
+| `Ctrl` + `1` … `9` | Jump to a page |
+| `Ctrl` + `B` | Collapse / expand the sidebar |
+| `Esc` | Close the palette |
 
 ---
 
-## Run
-
-Requirements: Windows 10/11, Node.js 20+, PowerShell 7 (`pwsh`), NVIDIA driver (for `nvidia-smi`).
+## Build from source
 
 ```powershell
+git clone https://github.com/QuantumSparc/PredatorMonitor.git
+cd PredatorMonitor
 npm install
-npm start            # builds and opens the app
+npm start                 # build and open the app
 ```
 
 Or double-click **`start.cmd`** (`start.cmd admin` starts with full sensors).
 
-### Full sensors (optional)
-
-Without admin the app already shows CPU load/clocks/RAPL power, the board thermal zone, the GPU, memory, disks, network,
-battery and per-app GPU. With admin it also reads:
-
-- **Acer gaming WMI** — PredatorSense profile, fan modes and speeds, overclock tier, Turbo LED (read-only `Get*` calls)
-- **LibreHardwareMonitor** — CPU core temperatures, voltages, clocks, and more. Set it up from **Settings → Sensors → Set up**
-  (downloads LibreHardwareMonitorLib 0.9.6, MPL-2.0, from nuget.org into `agent/lhm/`). CPU sensors also need the signed
-  **PawnIO** driver, installed once as admin: `winget install namazso.PawnIO`.
-
-Then use **Settings → Sensors → Restart with full sensors** (or `start.cmd admin`).
-
-Verified on the PH315-53: Acer's EC reports CPU / GPU / board temperatures and **CPU + GPU fan RPM** (sensor mask 0x0227),
-fan modes and the GPU overclock tier; the thermal-profile setting is not reported by this model. LibreHardwareMonitor adds
-144 sensors (per-core temperatures and voltages, GPU hot spot, DRAM SPD, battery). To see what any machine exposes, run
-`Start-Process pwsh -Verb RunAs -ArgumentList '-NoProfile','-File','agent\diagnose.ps1'` — it writes a report to
-`%TEMP%\predator-monitor-diag.txt` using read-only calls.
-
-### Notifications
-
-On first start the app creates a Start Menu shortcut ("Predator Monitor") carrying its AppUserModelID and registers that ID (name + icon) under `HKCU\Software\Classes\AppUserModelId` — Windows needs both to
-label toasts with the app's name and icon instead of "Electron". **Settings → Alerts → Send test notification** checks it.
-
----
-
-## Install (packaged build)
-
-`npm run dist` builds two files into `release/`:
-
-| File | What it is |
+| Script | What it does |
 |---|---|
-| `Predator-Monitor-Setup-<version>.exe` | Installer — per-user (no admin needed to install), lets you pick the folder, adds Start Menu + desktop shortcuts and an uninstaller. Your data in `%APPDATA%\Predator Monitor` is kept on uninstall. |
-| `Predator-Monitor-<version>-portable.exe` | Single file, no install. Unpacks to a temp folder on each run (slower start). |
+| `npm start` | Build and run |
+| `npm run dev` | Rebuild on change (esbuild watch) |
+| `npm run typecheck` | TypeScript check |
+| `npm run setup-sensors` | Download LibreHardwareMonitor into `agent/lhm/` |
+| `npm run pack` | Packaged app folder in `release/win-unpacked/` for a quick test |
+| `npm run dist` | Installer and portable exe in `release/` |
 
-The exe is named **Predator Monitor** (company QuantumSparc Technologies), so UAC, Task Manager and notifications all show
-that name. The sensor agent, LibreHardwareMonitor DLLs and icons ship as plain files in `resources/` next to `app.asar`.
-`npm run pack` builds only the unpacked folder (`release/win-unpacked/`) for a quick test.
-
-The builds are **not code-signed**, so Windows SmartScreen shows "Windows protected your PC" on first run →
-*More info* → *Run anyway*. Still required on the machine: PowerShell 7, the NVIDIA driver, and (for CPU sensors) PawnIO.
-Third-party licences: [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+Dev tools: start the app with `--remote-debugging-port=<port>`, then `node scripts/tour.mjs <dir>` screenshots every
+page and reports errors, and `node scripts/readme-shots.mjs` regenerates the screenshots in this README.
 
 ---
 
-## Architecture
+## How it works
 
-```
-agent/agent.ps1      PowerShell 7 sensor agent — streams NDJSON: static · tick (1 s) · procs (3 s) · slow (15 s) · lhmMeta
-                     sources: performance counters (CPU, RAPL, memory, disks, network, thermal zone, GPU engines),
-                     CIM/WMI (battery, volumes, adapters, displays, EDID), Acer gaming WMI, LibreHardwareMonitor
-                     self-test:  pwsh -File agent/agent.ps1 -SelfTest
-agent/setup-lhm.ps1  downloads LibreHardwareMonitorLib + dependencies
-src/shared/          profile.ts (machine limits from the dossier) · types.ts (all message shapes + settings)
-src/main/            sensors.ts (agent + streaming nvidia-smi) · insights.ts (rules engine) · store.ts (history, events,
-                     sessions, settings) · main.ts (window, tray, alerts, IPC)
-src/preload/         the only bridge between UI and system
-src/renderer/        app.ts (shell, router, palette) · ui.ts (gauges, 60 fps charts, tables) · views-*.ts · styles.css
-scripts/             make-icons.py · shot.mjs (dev screenshots over DevTools)
-```
-
-Data lives in `%APPDATA%\predator-monitor\data` (history per day, events, sessions, battery log, settings).
-
-## Develop
-
-```powershell
-npm run dev          # esbuild watch
-npm run typecheck
-npx electron . --remote-debugging-port=9333 ; node scripts/shot.mjs shot.png '#cpu'
+```mermaid
+flowchart LR
+  subgraph Sensors
+    A["agent.ps1<br/>PowerShell 7"]
+    N["nvidia-smi<br/>(streaming)"]
+  end
+  A -- "NDJSON: tick 1 s · procs 3 s · slow 15 s" --> M
+  N --> M
+  subgraph Main["Electron main process"]
+    M["sensors.ts"] --> I["insights.ts<br/>rules engine"]
+    I --> S["store.ts<br/>history · events · sessions"]
+    I --> T["alerts · tray"]
+  end
+  I -- "snapshot (IPC)" --> R["Renderer<br/>views · 60 fps charts"]
 ```
 
-Machine limits and specs come from the *Master Technical Dossier* PDF and are labelled as such in the UI; they are not measured.
+| Part | Role |
+|---|---|
+| `agent/agent.ps1` | Sensor agent. Windows performance counters (CPU, Intel RAPL, memory, disks, network, thermal zone, GPU engines), CIM/WMI (battery, volumes, adapters, displays, EDID), Acer gaming WMI and LibreHardwareMonitor. Exits by itself if the app closes. Self-test: `pwsh -File agent/agent.ps1 -SelfTest` |
+| `src/main/` | `sensors.ts` runs the agent and nvidia-smi · `insights.ts` turns readings into insights and derived values · `store.ts` keeps history, events, sessions and settings · `main.ts` window, tray, alerts, IPC |
+| `src/shared/` | `profile.ts` — this machine's limits from the technical dossier · `types.ts` — every message and setting |
+| `src/preload/` | The only bridge between the UI and the system |
+| `src/renderer/` | Shell, router and palette (`app.ts`), components and the canvas chart engine (`ui.ts`), one file per page group |
+
+Data lives in `%APPDATA%\Predator Monitor\data` — per-day history, events, sessions, battery log and settings.
+Settings are written crash-safely (temp file, backup, atomic rename).
+
+---
+
+## Privacy & safety
+
+- **Everything stays on your PC.** No telemetry, no accounts, no cloud. The only network access is downloading
+  LibreHardwareMonitor from nuget.org when you choose *Set up / Reinstall*, and opening links you click.
+- **Read-only hardware access.** Acer WMI is queried with `Get*` methods only; the app does not change fan, power or
+  overclock settings.
+- **No background leftovers.** The sensor agent exits when the app does.
+
+---
+
+## Troubleshooting
+
+| Problem | Fix |
+|---|---|
+| No CPU core temperatures or fan RPM | Run with full sensors (**Settings → Sensors**). CPU sensors also need PawnIO (`winget install namazso.PawnIO`). |
+| "Sensor agent: stopped" | Make sure PowerShell 7 is installed (`pwsh --version`), then **Settings → Sensors → Restart agent**. |
+| No GPU data | The NVIDIA driver provides `nvidia-smi`; check that `nvidia-smi` runs in a terminal. |
+| SmartScreen blocks the installer | **More info → Run anyway** (the build is not code-signed). |
+| Something else | Run `agent\diagnose.ps1` as admin and look at `%TEMP%\predator-monitor-diag.txt`. |
+
+---
+
+## Credits & licences
+
+<a href="https://quantumsparc.com/"><img src="assets/quantumsparc-logo.png" width="120" alt="QuantumSparc Technologies" /></a>
+
+Designed and developed by **[QuantumSparc Technologies](https://quantumsparc.com/)** · © 2026 QuantumSparc Technologies.
+
+Built with [Electron](https://www.electronjs.org/), [uPlot](https://github.com/leeoniya/uPlot) and
+[LibreHardwareMonitor](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor). Bundled third-party components and
+their licences are listed in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+
+Acer, Predator, PredatorSense, Alienware, NVIDIA, GeForce and Intel are trademarks of their respective owners. This
+project is not affiliated with or endorsed by them.

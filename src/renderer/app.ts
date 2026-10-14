@@ -133,7 +133,7 @@ function buildShell() {
     navItems.set(v.id, item); nav.append(item);
   });
   const credit = h('a', { class: 'dev-credit', href: DEVELOPER.url, title: `Developed by ${DEVELOPER.name} — ${DEVELOPER.url}`, onclick: (e: Event) => { e.preventDefault(); api.openUrl(DEVELOPER.url); } },
-    h('span', { class: 'dev-mark' }), h('span', { class: 'nav-label' }, h('small', null, 'Developed by'), DEVELOPER.name));
+    h('img', { class: 'dev-mark', src: '../../assets/quantumsparc-mark.png', alt: 'QuantumSparc' }), h('span', { class: 'nav-label' }, h('small', null, 'Developed by'), DEVELOPER.name));
   nav.append(h('div', { class: 'side-foot' }, credit, h('button', { class: 'collapse-btn', onclick: () => save({ sidebarCollapsed: !state.settings.sidebarCollapsed }) }, icon('chevron', 16), h('span', { class: 'nav-label' }, 'Collapse'))));
   main = h('main', { class: 'main' });
   const title = h('header', { class: 'titlebar' },

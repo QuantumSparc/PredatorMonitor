@@ -2,7 +2,7 @@
 // Usage: node scripts/tour.mjs <outDir> [view,view,...] [waitMs] [scale]
 setTimeout(() => { console.log('TIMEOUT'); process.exit(2); }, Number(process.env.TOUR_TIMEOUT ?? 300000));
 const [outDir = 'tour', only, wait = '2500', scale = '0.62'] = process.argv.slice(2);
-const port = process.env.CDP_PORT ?? '9944';
+const port = process.env.CDP_PORT ?? '9966';
 const fs = await import('node:fs'); fs.mkdirSync(outDir, { recursive: true });
 const targets = await (await fetch(`http://127.0.0.1:${port}/json`)).json();
 const page = targets.find((t) => t.type === 'page' && t.url.includes('index.html'));

@@ -3,7 +3,7 @@ setTimeout(() => { console.log("TIMEOUT"); process.exit(2); }, Number(process.en
 // Start the app with:  npx electron . --remote-debugging-port=9333
 // Then:                node scripts/shot.mjs out.png [#view] [waitMs] [evalJs]
 const [out = 'shot.png', hash, wait = '2500', evalJs] = process.argv.slice(2);
-const targets = await (await fetch('http://127.0.0.1:9944/json')).json();
+const targets = await (await fetch('http://127.0.0.1:9966/json')).json();
 const page = targets.find((t) => t.type === 'page' && t.url.includes('index.html'));
 if (!page) { console.error('app page not found', targets.map((t) => t.url)); process.exit(1); }
 const ws = new WebSocket(page.webSocketDebuggerUrl);
