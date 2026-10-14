@@ -2,7 +2,7 @@ import { PROFILE } from '../shared/profile';
 import type { Snapshot } from '../shared/types';
 import * as F from './format';
 import { api, series, state, stagger, type View } from './state';
-import { AnimNum, card, FanWidget, Gauge, h, icon, KV, LiveChart, Meter, MinMax, pill, spark } from './ui';
+import { AnimNum, card, FanWidget, Gauge, h, icon, KV, LiveChart, Meter, MinMax, pill, spark, toast } from './ui';
 
 const head = (title: string, sub: string, actions?: any) => h('div', { class: 'view-head' }, h('div', null, h('h1', null, title), h('p', null, sub)), actions ? h('div', { class: 'actions' }, actions) : null);
 const win = () => state.settings.chartWindowS * 1000;
@@ -146,8 +146,14 @@ export function overviewView(): View {
       const rem = tileEls.length % 3;
       if (rem === 1) tileEls[tileEls.length - 1].style.gridColumn = 'span 12';
       if (rem === 2) tileEls.slice(-2).forEach((el) => (el.style.gridColumn = 'span 6'));
-      const grid = h('div', { class: 'grid' }, healthCard, ...tileEls);
-      root.append(head('Overview', `${state.static?.system.model ?? 'Predator PH315-53'} · ${state.static?.system.os ?? ''} · live`), grid);
+      // first-run help when PowerShell 7 (needed by the sensor agent) is missing
+      const setup = state.agent === 'no-pwsh' ? card({ title: 'One more step: install PowerShell 7', sub: 'the free Microsoft component Predator Monitor reads sensors with', icon: 'shield', span: 12, cls: 'setup-card' },
+        h('p', null, 'Predator Monitor uses PowerShell 7 to read your hardware sensors. It is free, made by Microsoft, and takes about a minute to install. Sensors start automatically when it is done — no restart needed.'),
+        h('div', { class: 'row' },
+          h('button', { class: 'btn primary', onclick: () => { api.installPwsh(); toast('Installing PowerShell 7', 'Follow the window that opened. Sensors start by themselves when it finishes.', 'info', 8000); } }, icon('download', 15), 'Install PowerShell 7'),
+          h('button', { class: 'btn ghost', onclick: () => api.openUrl('https://aka.ms/powershell-release?tag=stable') }, 'Download manually'))) : null;
+      const grid = h('div', { class: 'grid' }, setup, healthCard, ...tileEls);
+      root.append(head('Overview', [state.static?.system.model ?? 'Predator PH315-53', state.static?.system.os, 'live'].filter(Boolean).join(' · ')), grid);
       stagger(root);
     },
     update(s) { for (const f of u) f(s); },

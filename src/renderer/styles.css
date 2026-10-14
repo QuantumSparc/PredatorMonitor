@@ -554,3 +554,5 @@ button, input, select { font: inherit; color: inherit; }
 .about p { margin: 0 0 6px; font-size: 12.5px; line-height: 1.55; }
 .about-dev { color: var(--text-2); }
 .about-dev a { color: var(--accent); text-decoration: none; font-weight: 600; } .about-dev a:hover { text-decoration: underline; }
+.setup-card { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 14%, var(--panel)), var(--panel)); }
+.setup-card p { margin: 0 0 14px; max-width: 780px; color: var(--text-2); line-height: 1.55; }

@@ -64,6 +64,14 @@
       {
         "from": "THIRD-PARTY-NOTICES.md",
         "to": "THIRD-PARTY-NOTICES.md"
+      },
+      {
+        "from": "LICENSE",
+        "to": "LICENSE.txt"
+      },
+      {
+        "from": "CHANGELOG.md",
+        "to": "CHANGELOG.md"
       }
     ],
     "asar": true,

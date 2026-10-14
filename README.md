@@ -12,10 +12,14 @@ against this exact machine's limits — and tells you what it means.
 ![Electron](https://img.shields.io/badge/Electron-44-47848F?logo=electron&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-7-3178C6?logo=typescript&logoColor=white)
 ![PowerShell 7](https://img.shields.io/badge/PowerShell-7-5391FE?logo=powershell&logoColor=white)
-![Version](https://img.shields.io/badge/version-0.1.0-cba6f7)
+[![Release](https://img.shields.io/github/v/release/QuantumSparc/PredatorMonitor?color=cba6f7)](https://github.com/QuantumSparc/PredatorMonitor/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/QuantumSparc/PredatorMonitor/total?color=a6e3a1)](https://github.com/QuantumSparc/PredatorMonitor/releases)
+[![License: MIT](https://img.shields.io/badge/license-MIT-89b4fa)](LICENSE)
 
 <a href="https://quantumsparc.com/"><img src="assets/quantumsparc-mark.png" width="22" align="center" alt="" /></a>
 Developed by **[QuantumSparc Technologies](https://quantumsparc.com/)**
+
+**[⬇ Download the latest release](https://github.com/QuantumSparc/PredatorMonitor/releases/latest)**
 
 </div>
 
@@ -35,6 +39,7 @@ Developed by **[QuantumSparc Technologies](https://quantumsparc.com/)**
 - [How it works](#how-it-works)
 - [Privacy & safety](#privacy--safety)
 - [Troubleshooting](#troubleshooting)
+- [Changelog](CHANGELOG.md)
 - [Credits & licences](#credits--licences)
 
 ---
@@ -124,15 +129,27 @@ command palette, keyboard shortcuts, °C / °F.
 
 ## Install
 
-Download from the [Releases](../../releases) page, or build it yourself with `npm run dist` (see below).
+**Quick start**
+
+1. Go to the **[latest release](https://github.com/QuantumSparc/PredatorMonitor/releases/latest)** and download
+   `Predator-Monitor-Setup-0.1.0.exe` (or the portable exe).
+2. Run it. If Windows shows *"Windows protected your PC"*, click **More info → Run anyway** (see below).
+3. Open **Predator Monitor**. If PowerShell 7 isn't installed yet, click **Install PowerShell 7** on the Overview —
+   sensors start by themselves when it finishes.
+4. Optional: **Settings → Sensors → Restart with full sensors** for fan speeds and per-core temperatures.
+
+Or build it yourself with `npm run dist` (see [Build from source](#build-from-source)).
 
 | File | Use it when |
 |---|---|
 | `Predator-Monitor-Setup-<version>.exe` | You want a normal install. Per-user (no admin needed to install), lets you choose the folder, adds Start Menu and desktop shortcuts and an uninstaller. Your data is kept on uninstall. |
 | `Predator-Monitor-<version>-portable.exe` | You want a single file and no install. It unpacks to a temp folder on each start, so it opens a little slower. |
 
-**Requirements:** Windows 10 or 11 (x64), [PowerShell 7](https://aka.ms/powershell) (`pwsh`), and the NVIDIA driver
-(provides `nvidia-smi`).
+**Requirements:** Windows 10 or 11 (x64) and [PowerShell 7](https://aka.ms/powershell) — the app offers to install
+it for you. GPU data needs the NVIDIA driver (`nvidia-smi`); without an NVIDIA GPU the rest still works.
+
+> **Made for the Acer Predator Helios 300 (PH315-53).** It runs on other Windows PCs too, but the limits, insights and
+> PredatorSense data are tuned for that laptop, so some advice will not apply elsewhere.
 
 > **"Windows protected your PC"** — the builds are not code-signed yet, so SmartScreen warns on first run.
 > Click **More info → Run anyway**.
@@ -256,7 +273,8 @@ Settings are written crash-safely (temp file, backup, atomic rename).
 | Problem | Fix |
 |---|---|
 | No CPU core temperatures or fan RPM | Run with full sensors (**Settings → Sensors**). CPU sensors also need PawnIO (`winget install namazso.PawnIO`). |
-| "Sensor agent: stopped" | Make sure PowerShell 7 is installed (`pwsh --version`), then **Settings → Sensors → Restart agent**. |
+| "PowerShell 7 needed" | Click **Install PowerShell 7** on the Overview, or install it from [aka.ms/powershell](https://aka.ms/powershell). |
+| "Sensor agent: stopped" | **Settings → Sensors → Restart agent**. If it keeps stopping, run the diagnostic below. |
 | No GPU data | The NVIDIA driver provides `nvidia-smi`; check that `nvidia-smi` runs in a terminal. |
 | SmartScreen blocks the installer | **More info → Run anyway** (the build is not code-signed). |
 | Something else | Run `agent\diagnose.ps1` as admin and look at `%TEMP%\predator-monitor-diag.txt`. |
@@ -268,6 +286,7 @@ Settings are written crash-safely (temp file, backup, atomic rename).
 <a href="https://quantumsparc.com/"><img src="assets/quantumsparc-logo.png" width="120" alt="QuantumSparc Technologies" /></a>
 
 Designed and developed by **[QuantumSparc Technologies](https://quantumsparc.com/)** · © 2026 QuantumSparc Technologies.
+Released under the [MIT License](LICENSE). See the [changelog](CHANGELOG.md) for what's new.
 
 Built with [Electron](https://www.electronjs.org/), [uPlot](https://github.com/leeoniya/uPlot) and
 [LibreHardwareMonitor](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor). Bundled third-party components and

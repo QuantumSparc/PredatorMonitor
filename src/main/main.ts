@@ -94,7 +94,7 @@ function relaunchElevated() {
 }
 function runScript(file: string, args: string[] = []): Promise<number> {
   return new Promise((resolve) => {
-    const p = spawn('pwsh.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', file, ...args], { windowsHide: true });
+    const p = spawn(SensorHub.findPwsh() ?? 'pwsh.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', file, ...args], { windowsHide: true });
     const fwd = (d: Buffer) => send('setup:log', String(d));
     p.stdout.on('data', fwd); p.stderr.on('data', fwd);
     p.on('exit', (code) => resolve(code ?? 1));
@@ -204,6 +204,11 @@ ipcMain.handle('notify:test', () => {
 ipcMain.handle('sensors:elevate', () => relaunchElevated());
 ipcMain.handle('sensors:setupLhm', async () => runScript(path.join(AGENT_DIR, 'setup-lhm.ps1')));
 ipcMain.handle('sensors:restartAgent', () => { hub.stop(); hub.start(); });
+// PowerShell 7 is required by the sensor agent and is not part of Windows: install it with winget in a visible
+// console so the user sees progress. The agent looks for pwsh every 10 s and starts by itself afterwards.
+ipcMain.handle('setup:pwsh', () => {
+  spawn('cmd.exe', ['/c', 'start', '"Install PowerShell 7"', 'cmd', '/k', 'winget install --id Microsoft.PowerShell --exact --source winget --accept-source-agreements && echo. && echo PowerShell 7 is installed - Predator Monitor will start its sensors in a few seconds. You can close this window.'], { detached: true, stdio: 'ignore', windowsHide: false }).unref();
+});
 ipcMain.handle('open:data', () => shell.openPath(store.dir));
 ipcMain.handle('open:url', (_e, url: string) => { if (/^https:\/\//.test(url)) shell.openExternal(url); });
 ipcMain.handle('export', async (_e, kind: 'history' | 'events' | 'sessions', days = 7) => {

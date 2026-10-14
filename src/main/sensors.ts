@@ -1,5 +1,6 @@
-import { spawn, ChildProcessWithoutNullStreams, execFile } from 'node:child_process';
+import { spawn, spawnSync, ChildProcessWithoutNullStreams, execFile } from 'node:child_process';
 import { EventEmitter } from 'node:events';
+import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as readline from 'node:readline';
 import type { AgentTick, GpuStatic, GpuTick, LhmSensorMeta, ProcsMsg, SlowMsg, StaticMsg } from '../shared/types';
@@ -57,9 +58,35 @@ export class SensorHub extends EventEmitter {
     this.smi?.kill();
   }
 
+  /** PowerShell 7 is not part of Windows. Look in its standard install folders too, so a copy installed
+   *  while the app is running is found without a restart (the app's PATH is fixed at launch). */
+  static findPwsh(): string | null {
+    const env = process.env;
+    const candidates = [
+      path.join(env.ProgramFiles ?? 'C:\\Program Files', 'PowerShell', '7', 'pwsh.exe'),
+      path.join(env.ProgramFiles ?? 'C:\\Program Files', 'PowerShell', '7-preview', 'pwsh.exe'),
+      path.join(env.LOCALAPPDATA ?? '', 'Microsoft', 'WindowsApps', 'pwsh.exe'),
+      ...(env.PATH ?? '').split(';').filter(Boolean).map((d) => path.join(d, 'pwsh.exe')),
+    ];
+    // lstat, not exists: the Microsoft Store install is an "app execution alias" (a reparse point that
+    // fs.existsSync / stat cannot follow), but it launches fine
+    const found = candidates.find((p) => { try { fs.lstatSync(p); return true; } catch { return false; } });
+    if (found) return found;
+    // last resort: ask Windows itself
+    const r = spawnSync('where.exe', ['pwsh.exe'], { windowsHide: true, encoding: 'utf8' });
+    return r.status === 0 ? r.stdout.split(/\r?\n/).find(Boolean)?.trim() ?? null : null;
+  }
+
   private startAgent() {
     const script = path.join(this.agentDir, 'agent.ps1');
-    const proc = spawn('pwsh.exe', ['-NoProfile', '-NoLogo', '-ExecutionPolicy', 'Bypass', '-File', script, '-IntervalMs', String(this.intervalMs), '-ParentPid', String(process.pid)], { windowsHide: true });
+    const pwsh = SensorHub.findPwsh();
+    if (!pwsh) {
+      // tell the UI (it offers a one-click install) and check again shortly
+      this.emit('status', { agent: 'no-pwsh' });
+      if (!this.stopped) setTimeout(() => !this.stopped && !this.agent && this.startAgent(), 10000);
+      return;
+    }
+    const proc = spawn(pwsh, ['-NoProfile', '-NoLogo', '-ExecutionPolicy', 'Bypass', '-File', script, '-IntervalMs', String(this.intervalMs), '-ParentPid', String(process.pid)], { windowsHide: true });
     this.agent = proc;
     this.emit('status', { agent: 'starting' });
     readline.createInterface({ input: proc.stdout }).on('line', (line) => {
@@ -79,6 +106,7 @@ export class SensorHub extends EventEmitter {
       }
     });
     proc.stderr.on('data', (d) => this.emit('log', { level: 'error', msg: String(d).slice(0, 500) }));
+    proc.on('error', (e) => this.emit('log', { level: 'error', msg: `sensor agent: ${e.message}` })); // never crash the app
     proc.on('exit', (code) => {
       this.agent = null;
       this.emit('status', { agent: 'stopped', code });
@@ -106,10 +134,12 @@ export class SensorHub extends EventEmitter {
       this.lastGpu = g;
       this.emit('gpu', g);
     });
-    proc.on('error', () => this.emit('log', { level: 'warn', msg: 'nvidia-smi not available' }));
+    // no NVIDIA GPU / driver: stay quiet and look again once a minute instead of every 3 s
+    let missing = false;
+    proc.on('error', () => { missing = true; this.emit('log', { level: 'warn', msg: 'nvidia-smi not available' }); });
     proc.on('exit', () => {
       this.smi = null;
-      if (!this.stopped) setTimeout(() => !this.stopped && this.startSmi(), 3000);
+      if (!this.stopped) setTimeout(() => !this.stopped && !this.smi && this.startSmi(), missing ? 60000 : 3000);
     });
   }
 

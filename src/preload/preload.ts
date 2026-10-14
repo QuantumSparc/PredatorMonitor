@@ -16,6 +16,7 @@ const api = {
   testNotification: () => ipcRenderer.invoke('notify:test'),
   setupLhm: () => ipcRenderer.invoke('sensors:setupLhm'),
   restartAgent: () => ipcRenderer.invoke('sensors:restartAgent'),
+  installPwsh: () => ipcRenderer.invoke('setup:pwsh'),
   openData: () => ipcRenderer.invoke('open:data'),
   openUrl: (url: string) => ipcRenderer.invoke('open:url', url),
   exportData: (kind: 'history' | 'events' | 'sessions', days?: number) => ipcRenderer.invoke('export', kind, days),

@@ -145,7 +145,8 @@ function buildShell() {
   new ResizeObserver(() => current && moveIndicator(current.id)).observe(nav);
 }
 function updateChips(s?: Snapshot) {
-  chips.agent.replaceChildren(pill(state.agent === 'running' ? (state.admin ? 'Full sensors' : 'Live') : state.agent, state.agent === 'running' ? 'ok' : 'warn'));
+  const agentLabel = state.agent === 'running' ? (state.admin ? 'Full sensors' : 'Live') : state.agent === 'no-pwsh' ? 'PowerShell 7 needed' : state.agent;
+  chips.agent.replaceChildren(pill(agentLabel, state.agent === 'running' ? 'ok' : 'warn'));
   (chips.agent.firstChild as HTMLElement)?.prepend(h('span', { class: 'dot' }));
   if (s) {
     chips.mode.replaceChildren(pill(s.derived.psMode, 'info'));
@@ -187,7 +188,7 @@ async function boot() {
   api.onGpuStatic((m: any) => { state.gpuStatic = m; });
   api.onLhmMeta((m: any) => { state.lhmMeta = m; if (current?.id === 'thermal') remount(); });
   api.onSettings((s: Settings) => { state.settings = s; });
-  api.onStatus((m: any) => { if (m.agent) { state.agent = m.agent; if (m.admin != null) state.admin = m.admin; updateChips(); } });
+  api.onStatus((m: any) => { if (m.agent) { const was = state.agent; state.agent = m.agent; if (m.admin != null) state.admin = m.admin; updateChips(); if ((was === 'no-pwsh') !== (m.agent === 'no-pwsh')) remount(); } });
   api.onEvent((e: EventEntry) => { state.events.push(e); current?.onEvent?.(); toast(e.title, e.detail, e.level); });
   api.onSession((s: any) => { state.sessions.push(s); current?.onEvent?.(); });
 
