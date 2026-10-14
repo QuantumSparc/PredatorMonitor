@@ -1,0 +1,107 @@
+{
+  "name": "predator-monitor",
+  "productName": "Predator Monitor",
+  "version": "0.1.0",
+  "description": "Machine-aware hardware monitor for the Acer Predator Helios 300 (PH315-53) + Alienware AW3425DWM",
+  "main": "dist/main/main.js",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "build": "node build.mjs",
+    "typecheck": "tsc --noEmit -p .",
+    "start": "node build.mjs && electron .",
+    "dev": "node build.mjs --watch",
+    "setup-sensors": "pwsh -NoProfile -ExecutionPolicy Bypass -File agent/setup-lhm.ps1",
+    "pack": "node build.mjs && electron-builder --win --dir",
+    "dist": "node build.mjs && electron-builder --win"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "electron": "^44.7.2",
+    "electron-builder": "^26.15.3",
+    "esbuild": "^0.28.2",
+    "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "uplot": "^1.6.32"
+  },
+  "author": {
+    "name": "QuantumSparc Technologies",
+    "url": "https://quantumsparc.com/"
+  },
+  "homepage": "https://quantumsparc.com/",
+  "build": {
+    "appId": "PredatorMonitor.Desktop",
+    "productName": "Predator Monitor",
+    "copyright": "© 2026 QuantumSparc Technologies",
+    "directories": {
+      "output": "release",
+      "buildResources": "assets"
+    },
+    "files": [
+      "dist/**",
+      "assets/**",
+      "package.json",
+      "!**/*.map"
+    ],
+    "extraResources": [
+      {
+        "from": "agent",
+        "to": "agent",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "assets",
+        "to": "assets",
+        "filter": [
+          "icon.ico",
+          "icon.png",
+          "tray.png"
+        ]
+      },
+      {
+        "from": "THIRD-PARTY-NOTICES.md",
+        "to": "THIRD-PARTY-NOTICES.md"
+      }
+    ],
+    "asar": true,
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icon.ico",
+      "executableName": "Predator Monitor",
+      "requestedExecutionLevel": "asInvoker",
+      "legalTrademarks": "QuantumSparc Technologies"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Predator Monitor",
+      "artifactName": "Predator-Monitor-Setup-${version}.${ext}",
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico",
+      "uninstallDisplayName": "Predator Monitor",
+      "deleteAppDataOnUninstall": false
+    },
+    "portable": {
+      "artifactName": "Predator-Monitor-${version}-portable.${ext}"
+    }
+  }
+}
